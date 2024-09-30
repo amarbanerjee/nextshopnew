@@ -1,6 +1,48 @@
-import React from 'react'
+import { useState, useRef, useContext  } from 'react';
+import { Formik } from 'formik';
+import { useToast } from '@chakra-ui/react'
+import { useRouter } from 'next/router';
+import NotificationContext from '@/store/notification-context';
+
+async function createUser(email, password,username) {
+
+  console.log("Sendeing Username",username);
+
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password,username }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      
+  
+      throw new Error(data.message || 'Something went wrong!');
+    }
+    
+  
+     return data;
+  }
+
 
 export default function SignupComponent() {
+
+    const [isSubmitting,setSubmitting] = useState(false);
+    const toast = useToast();
+  
+  const notificationCtx = useContext(NotificationContext);
+  const emailInputRef = useRef();
+  const passwordInputRef = useRef();
+  const usernameInputRef = useRef();
+
+  const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+
+
   return (
     <>
       <section className="page-section color">
@@ -8,7 +50,95 @@ export default function SignupComponent() {
                         <div className="row">
                             <div className="col-sm-6">
                                 <h3 className="block-title"><span>Sign Up</span></h3>
-                                <form action="#" className="form-login">
+
+
+     <Formik
+        
+       initialValues={{ email: '', name: '',password:'' }}
+       validate={values => {
+         const errors = {};
+         if (!values.email) {
+           errors.email = 'Required';
+         } else if (
+           !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+         ) {
+           errors.email = 'Invalid email address';
+         }
+
+         if(!values.name)
+         {
+            errors.name = 'Required';
+         }
+         else if(values.name.length<5)
+         {
+            errors.name = 'Full Name Should be 5 charecter minimum';
+         }
+
+         if(!values.password)
+            {
+               errors.password = 'Required';
+            }
+            else if(values.password.length<7)
+                {
+                   errors.password = 'Password Should be 7 charecter minimum';
+                }
+
+        
+         return errors;
+       }}
+       onSubmit={ async (values, actions) =>  {
+        setSubmitting(true);
+        const enteredEmail = emailInputRef.current.value;
+        const enteredPassword = passwordInputRef.current.value;
+        const enteredUsername = usernameInputRef.current.value;
+
+    // optional: Add validation
+
+    
+      try {
+        
+        const result = await createUser(enteredEmail, enteredPassword,enteredUsername);
+        console.log(result);
+
+        toast({
+            title: 'You have successfully signedup..',
+            description: "We have received your Signup information.Please check your e-mail.",
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+          });
+
+        router.replace('/user/auth/');
+      } catch (error) {
+        toast({
+            title: 'Error in Signup Process',
+            description: error,
+            status: 'error',
+            duration: 9000,
+            isClosable: true,
+          });
+        console.log(error);
+      }
+   
+        
+        
+
+        actions.resetForm({ email: '', name: '',subject:'',message:'' });
+        setSubmitting(false);
+       }}
+     >
+       {({
+         values,
+         errors,
+         touched,
+         handleChange,
+         handleBlur,
+         handleSubmit,
+         isSubmitting,
+         resetForm
+         /* and other goodies */
+       }) => (
+                                <form onSubmit={handleSubmit} className="form-login">
                                     <div className="row">
                                         <div className="col-md-12 hello-text-wrap">
                                             <span className="hello-text text-thin">Hello, welcome to your account</span>
@@ -20,14 +150,44 @@ export default function SignupComponent() {
                                             <a className="btn btn-theme btn-block btn-icon-left twitter" href="#"><i className="fa fa-twitter"></i>Sign in with Twitter</a>
                                         </div>
                                         <div className="col-md-12">
-                                            <div className="form-group"><input className="form-control" type="text" placeholder="Your Full Name" /></div>
+                                            <div className="form-group">
+                                                <input className="form-control" type="text" 
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                value={values.name} 
+                                                placeholder="Your Full Name" 
+                                                id='username'
+                                                name='name' 
+                                                ref={usernameInputRef} />
+                                                 {errors.name && touched.name && errors.name}
+                                                </div>
                                         </div>
 
                                         <div className="col-md-12">
-                                            <div className="form-group"><input className="form-control" type="text" placeholder="User name or email" /></div>
+                                            <div className="form-group">
+                                            <input className="form-control" type="email"
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            value={values.email} 
+                                            id='email'
+                                            name='email'
+                                            placeholder="User name or email"  ref={emailInputRef} />
+
+                                            {errors.email && touched.email && errors.email}
+                                            
+                                            </div>
                                         </div>
                                         <div className="col-md-12">
-                                            <div className="form-group"><input className="form-control" type="password" placeholder="Your password" /></div>
+                                            <div className="form-group">
+                                              <input className="form-control" type="password"
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            value={values.password} 
+                                            id='password'
+                                            name='password'
+                                            placeholder="Your password" ref={passwordInputRef} />
+                                              {errors.password && touched.password && errors.password}
+                                            </div>
                                         </div>
                                         <div className="col-md-12 col-lg-6">
                                             <div className="checkbox">
@@ -38,34 +198,15 @@ export default function SignupComponent() {
                                             <a className="forgot-password" href="#">forgot password?</a>
                                         </div>
                                         <div className="col-md-6">
-                                            <button type='submit' className="btn btn-theme btn-block btn-theme-dark" href="#">Sign Up</button>
+                                        <button  disabled={isSubmitting} className="form-button form-button-submit btn btn-theme btn-theme-dark" id="submit_btn" type="submit"> Sign Up </button>
+                                        {isSubmitting && <p>Data is submitting...</p>}
                                         </div>
                                     </div>
                                 </form>
+                                 )}
+                            </Formik>
                             </div>
-                            <div className="col-sm-6">
-                                <h3 className="block-title"><span>Create New Account</span></h3>
-                                <form action="#" className="create-account">
-                                    <div className="row">
-                                        <div className="col-md-12 hello-text-wrap">
-                                            <span className="hello-text text-thin">Create Your Account on Bellashop</span>
-                                        </div>
-                                        <div className="col-md-12">
-                                            <h3 className="block-title">Signup Today and You'll be able to</h3>
-                                            <ul className="list-check">
-                                                <li>Online Order Status</li>
-                                                <li>See Ready Hot Deals</li>
-                                                <li>Love List</li>
-                                                <li>Sign up to receive exclusive news and private sales</li>
-                                                <li>Quick Buy Stuffs</li>
-                                            </ul>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <a className="btn btn-block btn-theme btn-theme-dark btn-create" href="#">Create Account</a>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                           
                         </div>
                     </div>
         </section>

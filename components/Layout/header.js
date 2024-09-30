@@ -1,4 +1,6 @@
-import React from 'react'
+import { React, useContext } from 'react'
+import CartContext from "@/context/CartContext";
+
 import PreLoder from './preloader'
 import Modal from './modal'
 import TopBar from './topbar'
@@ -7,6 +9,7 @@ import { usePathname } from 'next/navigation'
 
 export default function Header() {
     const currentPage = usePathname();
+    const { cart } = useContext(CartContext);
 
     const isActive = (path) => {
         return currentPage===path;
@@ -25,7 +28,7 @@ export default function Header() {
 
                        
                         <div className="logo">
-                            <Link href="/"><img src="assets/img/logo-bella-shop.png" alt="Bella Shop"/></Link>
+                            <Link href="/"><img src="/assets/img/logo-bella-shop.png" alt="Bella Shop"/></Link>
                         </div>
                        
 
@@ -39,7 +42,12 @@ export default function Header() {
                             <div className="cart-wrapper">
                                 <Link href="/user/wishlist/" className="btn btn-theme-transparent hidden-xs hidden-sm"><i className="fa fa-heart"></i></Link>
                                 <Link href="user/compare" className="btn btn-theme-transparent hidden-xs hidden-sm"><i className="fa fa-exchange"></i></Link>
-                                <Link href="#" className="btn btn-theme-transparent" data-toggle="modal" data-target="#popup-cart"><i className="fa fa-shopping-cart"></i> <span className="hidden-xs"> 0 item(s) - $0.00 </span> <i className="fa fa-angle-down"></i></Link>
+                                <Link href="#" className="btn btn-theme-transparent" data-toggle="modal" data-target="#popup-cart">
+                                <i className="fa fa-shopping-cart"></i> 
+
+                                <span className="hidden-xs"> {cart?.cartItems?.length} item(s) - $200 </span> 
+                                
+                                <i className="fa fa-angle-down"></i></Link>
                                
                                 <Link href="#" className="menu-toggle btn btn-theme-transparent"><i className="fa fa-bars"></i></Link>
                                

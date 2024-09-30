@@ -1,19 +1,91 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
+import CartContext from "@/context/CartContext";
+import StarRatings from "react-star-ratings";
+import { useToast } from '@chakra-ui/react'
+import { useSession, signOut } from 'next-auth/react';
 
 export default function ProductDetails({id}) {
+    const toast = useToast();
+    const { addItemToCart } = useContext(CartContext);
+    const { data: session } = useSession();
+    
+
+    
+
+    const [isWishList,setWishlist] = useState(false);
+
+    const addToWishListHandler = async () => {
+
+        try
+        {
+            
+            if(session.userData){
+                console.log("Session",session);
+                const wdata = {uid:session.userData.id, pid:id, product_name:data.title, image:data.image, price: data.price};
+                const response = await fetch('/api/user/wishlists', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                        body: JSON.stringify(wdata),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error("Error fetching products");
+                    
+                    toast({
+                        title: 'You need to login..',
+                        description: "We have received your Signup information.Please check your e-mail.",
+                        status: 'error',
+                        duration: 9000,
+                        isClosable: true,
+                      });
+                  } else{
+
+                    toast({
+                        title: 'Successfully Added to the wishlist',
+                        description: "Product is added to the wishlist successfully..",
+                        status: 'success',
+                        duration: 9000,
+                        isClosable: true,
+                      }); 
+                      setWishlist(true);
+                  }
+              
+            }
+          }
+          catch(error){
+                console.log(error)
+                toast({
+                    title: 'Error added to the wishlist..',
+                    description: "Error added to the wishlist.",
+                    status: 'error',
+                    duration: 9000,
+                    isClosable: true,
+                  });  
+            }
+    }
+
+    const addToCartHandler = () => {
+        addItemToCart({
+          product: data._id,
+          name: data.title,
+          price: data.price,
+          image: data.image,
+          
+        });
+
+        notificationCtx.showNotification({
+            title: 'Added to the Cart Successfully !!',
+            message: 'Cart Added',
+            status: 'success',
+          });
+      };
 
     const [data, setData] = useState({});
 
     useEffect(() => {
         
-        // notificationCtx.showNotification({
-        //   title: 'Loading.. !!',
-        //   message: 'Loading Products from database..',
-        //   status: 'pending',
-        // });
-    
-        
-    
         async function getProductById(id) {
           try {
             
@@ -43,7 +115,59 @@ export default function ProductDetails({id}) {
             console.log("Error fetching products");
           }
         }
+
+        async function checkWishlist(id) {
+            //alert(id);
+            try {
+               console.log("Check Wishlist");
+               const userId = session.userData.id;
+                
+      
+              const wdata = {uid:userId, pid:id};
+              //const wdata = {uid:"66f4e5083b00071e09070fe1", pid:"123"};
+              //alert(wdata);
+              //console.log("Wdata Json",JSON.stringify(wdata));
+              const res = await fetch(`/api/user/checkWishlist/`,
+                    {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                            body: JSON.stringify(wdata),
+                    }
+                );
+
+              if (!res.ok) {
+                throw new Error("Error fetching products");
+              }
+      
+              const { wishlistdata } = await res.json();
+
+              console.log("Wishlist no",wishlistdata);
+              if(wishlistdata>0){
+                setWishlist(true);
+              }
+             // setData(product);
+              
+              // notificationCtx.showNotification({
+              //   title: 'Product Loaded.. !!',
+              //   message: 'Successfully Loaded..',
+              //   status: 'success',
+              // });
+            } catch (error) {
+              
+              // notificationCtx.showNotification({
+              //   title: 'Product Loaded Failed.. !!',
+              //   message: 'Error in Loding Products ..',
+              //   status: 'error',
+              // });
+      
+              console.log(error);
+            }
+          }
         getProductById(id);
+        checkWishlist(id);
+        
        
       }, []);
 
@@ -59,19 +183,11 @@ export default function ProductDetails({id}) {
                                     <div className="hot">hot</div>
                                     <div className="new">new</div>
                                 </div>
-                                <div className="owl-carousel img-carousel">
+                                <div className="img-carousel">
                                     <div className="item">
                                         <a className="btn btn-theme btn-theme-transparent btn-zoom" href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><i className="fa fa-plus"></i></a>
                                         <a href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><img className="img-responsive" src="/assets/img/preview/shop/product-1-big.jpg" alt=""/></a></div>
-                                    <div className="item">
-                                        <a className="btn btn-theme btn-theme-transparent btn-zoom" href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><i className="fa fa-plus"></i></a>
-                                        <a href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><img className="img-responsive" src="/assets/img/preview/shop/product-1-big.jpg" alt=""/></a></div>
-                                    <div className="item">
-                                        <a className="btn btn-theme btn-theme-transparent btn-zoom" href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><i className="fa fa-plus"></i></a>
-                                        <a href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><img className="img-responsive" src="/assets/img/preview/shop/product-1-big.jpg" alt=""/></a></div>
-                                    <div className="item">
-                                        <a className="btn btn-theme btn-theme-transparent btn-zoom" href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><i className="fa fa-plus"></i></a>
-                                        <a href="/assets/img/preview/shop/product-1-big.jpg" data-gal="prettyPhoto"><img className="img-responsive" src="/assets/img/preview/shop/product-1-big.jpg" alt=""/></a></div>
+                                    
                                 </div>
                                 <div className="row product-thumbnails">
                                     <div className="col-xs-2 col-sm-2 col-md-3"><a href="#" ><img src="/assets/img/preview/shop/product-thumb-1.jpg" alt=""/></a></div>
@@ -91,22 +207,26 @@ export default function ProductDetails({id}) {
                                 <h2 className="product-title">{data.title}</h2>
                                 <div className="product-rating clearfix">
                                     <div className="rating">
-                                        <span className="star"></span>
-                                        <span className="star active"></span>
-                                        <span className="star active"></span>
-                                        <span className="star active"></span>
-                                        <span className="star active"></span>
+                                    <StarRatings
+                                            rating={4}
+                                            starRatedColor="#ffb829"
+                                            numberOfStars={5}
+                                            starDimension="20px"
+                                            starSpacing="2px"
+                                            name="rating"
+                                            
+                                    />
                                     </div>
                                     <a className="reviews" href="#">16 reviews</a> | <a className="add-review" href="#">Add Your Review</a>
                                 </div>
                                 <div className="product-availability">Availability: <strong>In stock</strong> 21 Item(s)</div>
                                 <hr className="page-divider small"/>
 
-                                <div className="product-price">$400.00</div>
+                                <div className="product-price">${data.price}</div>
                                 <hr className="page-divider"/>
 
                                 <div className="product-text">
-                                    <p>Etiam eu justo ut nisi sollicitudin bibendum. Fusce sed dui ac turpis vulputate tincidunt vel sed magna. Pellentesque <strong>pretium</strong> mollis metus vel feugiat. Cum sociis natoque penatibus <strong>et magnis</strong> dis parturient montes, nascetur ridiculus mus. <strong>Vestibulum</strong> commodo mauris eget sapien posuere, id <a href="#">efficitur mi tristique</a>.</p>
+                                    <p>{data.description}</p>
                                     <ul>
                                         <li>- Cras tristique neque a mauris volutpat, eget sodales neque elementum.</li>
                                         <li>- Vestibulum iaculis velit sed dolor suscipit pretium.</li>
@@ -147,13 +267,13 @@ export default function ProductDetails({id}) {
 
 
                                 <div className="buttons">
-                                    <div className="quantity">
+                                    {/* <div className="quantity">
                                         <button className="btn"><i className="fa fa-minus"></i></button>
                                         <input className="form-control qty" type="number" step="1" min="1" name="quantity" defaultValue="1" title="Qty" />
                                         <button className="btn"><i className="fa fa-plus"></i></button>
-                                    </div>
-                                    <button className="btn btn-theme btn-cart btn-icon-left" type="submit"><i className="fa fa-shopping-cart"></i>Add to cart</button>
-                                    <button className="btn btn-theme btn-wish-list"><i className="fa fa-heart"></i></button>
+                                    </div> */}
+                                    <button  onClick={addToCartHandler} className="btn btn-theme btn-cart btn-icon-left" type="button"><i className="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button disabled={isWishList} onClick={addToWishListHandler} className="btn btn-theme btn-wish-list"><i className="fa fa-heart"></i></button>
                                     <button className="btn btn-theme btn-compare"><i className="fa fa-exchange"></i></button>
                                 </div>
 
@@ -524,3 +644,4 @@ export default function ProductDetails({id}) {
     </>
   )
 }
+

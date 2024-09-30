@@ -1,6 +1,100 @@
-import React from 'react'
+import { useState, useRef, useContext } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import NotificationContext from '@/store/notification-context';
+import Button from '../ui/button';
+import Link from 'next/link';
+
+
+async function createUser(email, password,username) {
+
+  
+
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password,username }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      
+  
+      throw new Error(data.message || 'Something went wrong!');
+    }
+  
+     return data;
+  }
 
 export default function LoginComponent() {
+
+    const notificationCtx = useContext(NotificationContext);
+
+  const emailInputRef = useRef();
+  const passwordInputRef = useRef();
+  const usernameInputRef = useRef();
+
+  const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+
+  function switchAuthModeHandler() {
+    setIsLogin((prevState) => !prevState);
+  }
+
+  async function submitHandler(event) {
+    event.preventDefault();
+
+    const enteredEmail = emailInputRef.current.value;
+    const enteredPassword = passwordInputRef.current.value;
+
+    // optional: Add validation
+
+    if (isLogin) {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: enteredEmail,
+        password: enteredPassword,
+      });
+
+      if (!result.error) {
+        // set some auth state
+        console.log("Login");
+        router.replace('/');
+
+        notificationCtx.showNotification({
+          title: 'Successfully Login !!',
+          message: 'Login Successful.',
+          status: 'success',
+        });
+      }
+      else{
+        notificationCtx.showNotification({
+          title: 'Error Login !!',
+          message: result.error || 'Login failed.',
+          status: 'error',
+        });
+      }
+    } else {
+      try {
+        const enteredUsername = usernameInputRef.current.value;
+        const result = await createUser(enteredEmail, enteredPassword,enteredUsername);
+        console.log(result);
+
+        notificationCtx.showNotification({
+          title: 'Signing up...',
+          message: 'Successfull Registering for the App.',
+          status: 'success',
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+
+
   return (
     <>
         <section className="page-section color">
@@ -8,7 +102,7 @@ export default function LoginComponent() {
                         <div className="row">
                             <div className="col-sm-6">
                                 <h3 className="block-title"><span>Login</span></h3>
-                                <form action="#" className="form-login">
+                                <form className="form-login" onSubmit={submitHandler}>
                                     <div className="row">
                                         <div className="col-md-12 hello-text-wrap">
                                             <span className="hello-text text-thin">Hello, welcome to your account</span>
@@ -20,10 +114,12 @@ export default function LoginComponent() {
                                             <a className="btn btn-theme btn-block btn-icon-left twitter" href="#"><i className="fa fa-twitter"></i>Sign in with Twitter</a>
                                         </div>
                                         <div className="col-md-12">
-                                            <div className="form-group"><input className="form-control" type="text" placeholder="User name or email" /></div>
+                                            <div className="form-group"><input className="form-control" type="email" placeholder="email" id='email' required ref={emailInputRef} /></div>
                                         </div>
                                         <div className="col-md-12">
-                                            <div className="form-group"><input className="form-control" type="password" placeholder="Your password" /></div>
+                                            <div className="form-group"><input className="form-control" type="password" placeholder="Your password" id='password'
+            required
+            ref={passwordInputRef} /></div>
                                         </div>
                                         <div className="col-md-12 col-lg-6">
                                             <div className="checkbox">
@@ -34,7 +130,7 @@ export default function LoginComponent() {
                                             <a className="forgot-password" href="#">forgot password?</a>
                                         </div>
                                         <div className="col-md-6">
-                                            <a className="btn btn-theme btn-block btn-theme-dark" href="#">Login</a>
+                                            <button className="btn btn-theme btn-block btn-theme-dark" href="#">Login</button>
                                         </div>
                                     </div>
                                 </form>
@@ -57,7 +153,7 @@ export default function LoginComponent() {
                                             </ul>
                                         </div>
                                         <div className="col-md-6">
-                                            <a className="btn btn-block btn-theme btn-theme-dark btn-create" href="#">Create Account</a>
+                                            <Link className="btn btn-block btn-theme btn-theme-dark btn-create" href="/user/signup">Create Account</Link>
                                         </div>
                                     </div>
                                 </form>
