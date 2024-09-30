@@ -68,8 +68,8 @@ export default function CartDetailsComponent() {
                             </thead>
                             <tbody>
                              
-                                {cart?.cartItems?.map((cartItem) => (   
-                                <tr>
+                                {cart?.cartItems?.map((cartItem,i) => (   
+                                <tr key={i}>
                                     <td class="image"><a href="#" class="media-link"><i class="fa fa-plus"></i><img alt="" src="assets/img/preview/shop/order-1.jpg" /></a></td>
                                     <td className="quantity">
                                         <button className="btn" onClick={() => decreaseQty(cartItem)}><i className="fa fa-minus"></i></button>

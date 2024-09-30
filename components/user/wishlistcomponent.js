@@ -91,7 +91,7 @@ export default function WishlistComponent() {
                                     </thead>
                                     <tbody>
                                     {rows.map((tr, i) => (
-                                        <tr>
+                                        <tr key={i}>
                                             <td className="image"><a className="media-link" href="#"><i className="fa fa-plus"></i><img src="assets/img/preview/shop/order-1.jpg" alt=""/></a></td>
                                             <td className="description">
                                                 <h4><Link href="#">{tr?.product_name}</Link></h4>
