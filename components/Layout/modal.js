@@ -14,7 +14,7 @@ export default function Modal() {
                             
                              
                              {cart?.cartItems?.map((cartItem) => (
-                                <div className="media">
+                                <div className="media" key={cartItem.id}>
                                     <a className="pull-left" href="#"><img className="media-object item-image" src="assets/img/preview/shop/order-1s.jpg" alt="" /></a>
                                     <p className="pull-right item-price">${cartItem.price}</p>
                                     <div className="media-body">
